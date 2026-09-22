@@ -3,6 +3,7 @@ import random
 from datetime import date
 import requests
 import streamlit as st
+import streamlit.components.v1 as components
 
 st.set_page_config(page_title="Gym Routine", page_icon="🏋️‍♂️", layout="centered")
 
@@ -11,7 +12,7 @@ def cargar_ejercicios():
         return json.load(f)
 
 def seleccionar_ejercicios_variados(ejercicios, cantidad):
-    """Selecciona ejercicios priorizando que pertenezcan a tipos distintos."""
+    """Selecciona ejercicios priorizando tipos distintos."""
     por_tipo = {}
     for ej in ejercicios:
         t = ej["tipo"]
@@ -24,14 +25,14 @@ def seleccionar_ejercicios_variados(ejercicios, cantidad):
 
     elegidos = []
 
-    # 1. Extraer un ejercicio de cada tipo distinto primero
+    # 1. Uno de cada tipo
     for tipo in tipos_disponibles:
         if len(elegidos) < cantidad and por_tipo[tipo]:
             ej_al_azar = random.choice(por_tipo[tipo])
             elegidos.append(ej_al_azar)
             por_tipo[tipo].remove(ej_al_azar)
 
-    # 2. Rellenar si faltan ejercicios sin repetir
+    # 2. Rellenar si faltan
     if len(elegidos) < cantidad:
         sobrantes = [ej for lista in por_tipo.values() for ej in lista]
         faltan = cantidad - len(elegidos)
@@ -41,10 +42,10 @@ def seleccionar_ejercicios_variados(ejercicios, cantidad):
     elegidos.sort(key=lambda x: x["tipo"])
     return elegidos
 
-# Base de datos
+# Carga de datos
 datos = cargar_ejercicios()
 
-# Configuración de los días de entrenamiento
+# Configuración de rutinas
 CONFIG_RUTINAS = {
     "Pierna (5 ejercicios)": [
         {"musculo": "pierna", "cantidad": 5}
@@ -60,10 +61,110 @@ CONFIG_RUTINAS = {
     ]
 }
 
-# Interfaz principal
+# --- TÍTULO ---
 st.title("🏋️‍♂️ Rutina de Entrenamiento")
 st.caption(f"Fecha: {date.today().strftime('%d/%m/%Y')}")
 
+# --- TEMPORIZADOR DE DESCANSO (HTML/JS ultraligero) ---
+with st.expander("⏱️ Temporizador de Descanso", expanded=True):
+    temporizador_html = """
+    <div style="text-align: center; font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: #1a1c24; padding: 15px; border-radius: 12px; color: white;">
+        <div id="display" style="font-size: 42px; font-weight: bold; margin-bottom: 10px; font-variant-numeric: tabular-nums;">01:30</div>
+        
+        <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; flex-wrap: wrap;">
+            <button onclick="fijar(60)" style="padding: 6px 12px; border-radius: 8px; border: 1px solid #444; background: #2b2e3b; color: #eee; font-weight: 600; cursor: pointer;">60s</button>
+            <button onclick="fijar(90)" style="padding: 6px 12px; border-radius: 8px; border: 1px solid #444; background: #2b2e3b; color: #eee; font-weight: 600; cursor: pointer;">90s</button>
+            <button onclick="fijar(120)" style="padding: 6px 12px; border-radius: 8px; border: 1px solid #444; background: #2b2e3b; color: #eee; font-weight: 600; cursor: pointer;">120s</button>
+            <button onclick="sumar(30)" style="padding: 6px 12px; border-radius: 8px; border: 1px solid #444; background: #2b2e3b; color: #eee; font-weight: 600; cursor: pointer;">+30s</button>
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: center;">
+            <button id="btnStart" onclick="toggleTimer()" style="padding: 10px 24px; border-radius: 8px; border: none; background: #ff4b4b; color: white; font-weight: bold; font-size: 16px; cursor: pointer;">Iniciar</button>
+            <button onclick="reiniciar()" style="padding: 10px 18px; border-radius: 8px; border: 1px solid #555; background: transparent; color: #ccc; font-weight: bold; cursor: pointer;">Reiniciar</button>
+        </div>
+    </div>
+
+    <script>
+        let tiempoRestante = 90;
+        let tiempoInicial = 90;
+        let intervalo = null;
+
+        function reproducirBeep() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = "sine";
+                osc.frequency.setValueAtTime(800, ctx.currentTime);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.4);
+            } catch(e) {}
+            if (navigator.vibrate) {
+                navigator.vibrate([200, 100, 200]);
+            }
+        }
+
+        function actualizarDisplay() {
+            let m = Math.floor(tiempoRestante / 60);
+            let s = tiempoRestante % 60;
+            document.getElementById("display").innerText = 
+                (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
+        }
+
+        function toggleTimer() {
+            let btn = document.getElementById("btnStart");
+            if (intervalo) {
+                clearInterval(intervalo);
+                intervalo = null;
+                btn.innerText = "Reanudar";
+                btn.style.background = "#ff4b4b";
+            } else {
+                if (tiempoRestante <= 0) tiempoRestante = tiempoInicial;
+                btn.innerText = "Pausar";
+                btn.style.background = "#e08b00";
+                intervalo = setInterval(() => {
+                    tiempoRestante--;
+                    actualizarDisplay();
+                    if (tiempoRestante <= 0) {
+                        clearInterval(intervalo);
+                        intervalo = null;
+                        btn.innerText = "¡Listo!";
+                        btn.style.background = "#28a745";
+                        reproducirBeep();
+                    }
+                }, 1000);
+            }
+        }
+
+        function fijar(seg) {
+            tiempoInicial = seg;
+            tiempoRestante = seg;
+            if (intervalo) { clearInterval(intervalo); intervalo = null; }
+            document.getElementById("btnStart").innerText = "Iniciar";
+            document.getElementById("btnStart").style.background = "#ff4b4b";
+            actualizarDisplay();
+        }
+
+        function sumar(seg) {
+            tiempoRestante += seg;
+            actualizarDisplay();
+        }
+
+        function reiniciar() {
+            fijar(tiempoInicial);
+        }
+
+        actualizarDisplay();
+    </script>
+    """
+    components.html(temporizador_html, height=170)
+
+st.divider()
+
+# --- SELECCIÓN Y GENERACIÓN DE RUTINA ---
 dia_seleccionado = st.selectbox(
     "Selecciona el día de hoy:",
     options=list(CONFIG_RUTINAS.keys())
