@@ -1,6 +1,7 @@
 import json
 import random
 from datetime import date
+import requests
 import streamlit as st
 
 st.set_page_config(page_title="Gym Routine", page_icon="🏋️‍♂️", layout="centered")
@@ -30,7 +31,7 @@ def seleccionar_ejercicios_variados(ejercicios, cantidad):
             elegidos.append(ej_al_azar)
             por_tipo[tipo].remove(ej_al_azar)
 
-    # 2. Si aún faltan ejercicios, rellenar con los restantes sin repetir
+    # 2. Rellenar si faltan ejercicios sin repetir
     if len(elegidos) < cantidad:
         sobrantes = [ej for lista in por_tipo.values() for ej in lista]
         faltan = cantidad - len(elegidos)
@@ -40,10 +41,10 @@ def seleccionar_ejercicios_variados(ejercicios, cantidad):
     elegidos.sort(key=lambda x: x["tipo"])
     return elegidos
 
-# Carga de base de datos
+# Base de datos
 datos = cargar_ejercicios()
 
-# Configuración correcta de los 3 días de entrenamiento
+# Configuración de los días de entrenamiento
 CONFIG_RUTINAS = {
     "Pierna (5 ejercicios)": [
         {"musculo": "pierna", "cantidad": 5}
@@ -59,7 +60,7 @@ CONFIG_RUTINAS = {
     ]
 }
 
-# Interfaz Streamlit
+# Interfaz principal
 st.title("🏋️‍♂️ Rutina de Entrenamiento")
 st.caption(f"Fecha: {date.today().strftime('%d/%m/%Y')}")
 
@@ -76,14 +77,12 @@ if st.button("🔥 Generar Rutina del Día", type="primary", use_container_width
         nombre_musculo = bloque["musculo"]
         cantidad = bloque["cantidad"]
 
-        # Buscar ejercicios del músculo correspondiente
         ejercicios_musculo = []
         for item in datos:
             if item["musculo"] == nombre_musculo:
                 ejercicios_musculo = item["ejercicios"]
                 break
 
-        # Selección garantizando variedad de tipos
         rutina_musculo = seleccionar_ejercicios_variados(ejercicios_musculo, cantidad)
 
         st.subheader(f"{nombre_musculo.upper()} ({len(rutina_musculo)} ejercicios)")
@@ -93,3 +92,36 @@ if st.button("🔥 Generar Rutina del Día", type="primary", use_container_width
                 st.markdown(f"**— {ej['tipo'].upper()} —**")
                 ultimo_tipo = ej["tipo"]
             st.info(f"💪 {ej['nombre'].capitalize()}")
+
+# --- BUZÓN DE SUGERENCIAS VÍA TELEGRAM ---
+st.divider()
+with st.expander("💬 ¿Tienes sugerencias o mejoras? Déjalas aquí"):
+    with st.form("form_sugerencias", clear_on_submit=True):
+        nombre = st.text_input("Tu nombre:")
+        mensaje = st.text_area("¿Qué añadirías o cambiarías?")
+        enviado = st.form_submit_button("Enviar sugerencia", use_container_width=True)
+
+        if enviado:
+            if mensaje.strip() != "":
+                autor = nombre.strip() if nombre.strip() != "" else "Anónimo"
+                texto_telegram = f"🔔 *Nueva sugerencia de la Gym App*\n\n👤 *De:* {autor}\n💬 *Mensaje:* {mensaje}"
+
+                try:
+                    token = st.secrets["TELEGRAM_TOKEN"]
+                    chat_id = st.secrets["TELEGRAM_CHAT_ID"]
+                    url = f"https://api.telegram.org/bot{token}/sendMessage"
+                    payload = {
+                        "chat_id": chat_id,
+                        "text": texto_telegram,
+                        "parse_mode": "Markdown"
+                    }
+                    response = requests.post(url, json=payload, timeout=5)
+
+                    if response.status_code == 200:
+                        st.success("¡Mensaje enviado directamente a mi móvil! Gracias por la ayuda 💪")
+                    else:
+                        st.error("Hubo un error al enviar el mensaje a Telegram.")
+                except Exception:
+                    st.error("No se pudo conectar con el servicio de avisos.")
+            else:
+                st.warning("Escribe un mensaje antes de enviar.")
