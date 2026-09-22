@@ -1,0 +1,74 @@
+[
+    {
+        "musculo": "pecho",
+        "ejercicios":[
+            {
+                "tipo": "pecho",
+                "nombre": "press inclinado"
+            },
+            {
+                "tipo": "pecho",
+                "nombre": "aperturas con polea"
+            },
+            {
+                "tipo": "pecho",
+                "nombre": "press en máquina"
+            }
+        ]
+    },
+    {
+        "musculo": "hombro",
+        "ejercicios": [
+            {
+                "tipo": "frontal",
+                "nombre":"press militar"
+            },
+            {
+                "tipo": "frontal", 
+                "nombre": "press militar con barra"
+            },
+            {
+                "tipo": "frontal",
+                "nombre": "polea con triángulo"
+            },
+            {
+                "tipo":"lateral",
+                "nombre": "mancuernas" 
+            },
+            {
+                "tipo":"lateral",
+                "nombre": "late.mancuernas banc.incl"
+            },
+            {
+                "tipo":"lateral",
+                "nombre": "late.polea"
+            }
+        
+        ]
+    },
+    {
+        "musculo": "triceps",
+        "ejercicios":[
+            {
+                "tipo": "cabeza larga",
+                "nombre": "trenza post.cabeza"
+            },
+            {
+                "tipo": "cabeza larga",
+                "nombre":"press francés"
+            },
+            {
+                "tipo":"cabeza lateral",
+                "nombre":"v"
+            },
+            {
+                "tipo":"cabeza lateral",
+                "nombre":"trenzas"
+            },
+            {
+                "tipo":"cabeza lateral",
+                "nombre":"barra"
+            }
+        ]
+    }
+]
