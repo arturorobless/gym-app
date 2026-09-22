@@ -11,7 +11,6 @@ def cargar_ejercicios():
 
 def seleccionar_ejercicios_variados(ejercicios, cantidad):
     """Selecciona ejercicios priorizando que pertenezcan a tipos distintos."""
-    # 1. Agrupar ejercicios por tipo
     por_tipo = {}
     for ej in ejercicios:
         t = ej["tipo"]
@@ -24,44 +23,43 @@ def seleccionar_ejercicios_variados(ejercicios, cantidad):
 
     elegidos = []
 
-    # 2. Extraer un ejercicio de cada tipo distinto primero
+    # 1. Extraer un ejercicio de cada tipo distinto primero
     for tipo in tipos_disponibles:
         if len(elegidos) < cantidad and por_tipo[tipo]:
             ej_al_azar = random.choice(por_tipo[tipo])
             elegidos.append(ej_al_azar)
             por_tipo[tipo].remove(ej_al_azar)
 
-    # 3. Si aún faltan ejercicios, rellenar con los restantes sin repetir
+    # 2. Si aún faltan ejercicios, rellenar con los restantes sin repetir
     if len(elegidos) < cantidad:
         sobrantes = [ej for lista in por_tipo.values() for ej in lista]
         faltan = cantidad - len(elegidos)
         if sobrantes:
             elegidos.extend(random.sample(sobrantes, min(faltan, len(sobrantes))))
 
-    # Ordenar alfabéticamente por tipo para la visualización
     elegidos.sort(key=lambda x: x["tipo"])
     return elegidos
 
-# Base de datos
+# Carga de base de datos
 datos = cargar_ejercicios()
 
-# Configuración de los días de entrenamiento
+# Configuración correcta de los 3 días de entrenamiento
 CONFIG_RUTINAS = {
     "Pierna (5 ejercicios)": [
         {"musculo": "pierna", "cantidad": 5}
     ],
-    "Espalda y Bíceps (4 espalda + 2 bíceps)": [
+    "Espalda y Tríceps (4 espalda + 2 tríceps)": [
         {"musculo": "espalda", "cantidad": 4},
-        {"musculo": "biceps", "cantidad": 2}
+        {"musculo": "triceps", "cantidad": 2}
     ],
-    "Pecho, Hombro y Tríceps (2 pecho + 2 hombro + 2 tríceps)": [
+    "Pecho, Hombro y Bíceps (2 pecho + 2 hombro + 2 bíceps)": [
         {"musculo": "pecho", "cantidad": 2},
         {"musculo": "hombro", "cantidad": 2},
-        {"musculo": "triceps", "cantidad": 2}
+        {"musculo": "biceps", "cantidad": 2}
     ]
 }
 
-# Interfaz
+# Interfaz Streamlit
 st.title("🏋️‍♂️ Rutina de Entrenamiento")
 st.caption(f"Fecha: {date.today().strftime('%d/%m/%Y')}")
 
@@ -78,7 +76,7 @@ if st.button("🔥 Generar Rutina del Día", type="primary", use_container_width
         nombre_musculo = bloque["musculo"]
         cantidad = bloque["cantidad"]
 
-        # Buscar los ejercicios correspondientes en el JSON
+        # Buscar ejercicios del músculo correspondiente
         ejercicios_musculo = []
         for item in datos:
             if item["musculo"] == nombre_musculo:
