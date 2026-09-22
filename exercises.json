@@ -28,9 +28,7 @@
       { "tipo": "frontal", "nombre": "elevaciones frontales con polea" },
       { "tipo": "lateral", "nombre": "elevaciones laterales con mancuernas" },
       { "tipo": "lateral", "nombre": "elevaciones laterales en polea" },
-      { "tipo": "lateral", "nombre": "laterales en banco inclinado" },
-      { "tipo": "posterior", "nombre": "face pull en polea alta" },
-      { "tipo": "posterior", "nombre": "pájaros con mancuernas" }
+      { "tipo": "lateral", "nombre": "laterales en banco inclinado" }
     ]
   },
   {
