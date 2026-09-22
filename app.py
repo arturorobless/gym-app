@@ -70,7 +70,7 @@ dia_seleccionado = st.selectbox(
     options=list(CONFIG_RUTINAS.keys())
 )
 
-if st.button("🔥 Generar Rutina del Día", type="primary", usecontainer_width=True):
+if st.button("🔥 Generar Rutina del Día", type="primary", use_container_width=True):
     st.divider()
     plan = CONFIG_RUTINAS[dia_seleccionado]
 
