@@ -1,74 +1,72 @@
 [
-    {
-        "musculo": "pecho",
-        "ejercicios":[
-            {
-                "tipo": "pecho",
-                "nombre": "press inclinado"
-            },
-            {
-                "tipo": "pecho",
-                "nombre": "aperturas con polea"
-            },
-            {
-                "tipo": "pecho",
-                "nombre": "press en máquina"
-            }
-        ]
-    },
-    {
-        "musculo": "hombro",
-        "ejercicios": [
-            {
-                "tipo": "frontal",
-                "nombre":"press militar"
-            },
-            {
-                "tipo": "frontal", 
-                "nombre": "press militar con barra"
-            },
-            {
-                "tipo": "frontal",
-                "nombre": "polea con triángulo"
-            },
-            {
-                "tipo":"lateral",
-                "nombre": "mancuernas" 
-            },
-            {
-                "tipo":"lateral",
-                "nombre": "late.mancuernas banc.incl"
-            },
-            {
-                "tipo":"lateral",
-                "nombre": "late.polea"
-            }
-        
-        ]
-    },
-    {
-        "musculo": "triceps",
-        "ejercicios":[
-            {
-                "tipo": "cabeza larga",
-                "nombre": "trenza post.cabeza"
-            },
-            {
-                "tipo": "cabeza larga",
-                "nombre":"press francés"
-            },
-            {
-                "tipo":"cabeza lateral",
-                "nombre":"v"
-            },
-            {
-                "tipo":"cabeza lateral",
-                "nombre":"trenzas"
-            },
-            {
-                "tipo":"cabeza lateral",
-                "nombre":"barra"
-            }
-        ]
-    }
+  {
+    "musculo": "pecho",
+    "ejercicios": [
+      { "tipo": "superior", "nombre": "press inclinado con mancuernas" },
+      { "tipo": "superior", "nombre": "press inclinado en máquina" },
+      { "tipo": "medio", "nombre": "press banca plano con barra" },
+      { "tipo": "medio", "nombre": "aperturas en polea media" }
+    ]
+  },
+  {
+    "musculo": "espalda",
+    "ejercicios": [
+      { "tipo": "amplitud", "nombre": "jalón al pecho agarre prono" },
+      { "tipo": "amplitud", "nombre": "dominadas" },
+      { "tipo": "amplitud", "nombre": "pullover en polea alta" },
+      { "tipo": "densidad", "nombre": "remo con barra" },
+      { "tipo": "densidad", "nombre": "remo gironda en polea baja" },
+      { "tipo": "densidad", "nombre": "remo con mancuerna a una mano" },
+      { "tipo": "espalda baja", "nombre": "peso muerto convencional" },
+      { "tipo": "espalda baja", "nombre": "hiperextensiones" }
+    ]
+  },
+  {
+    "musculo": "hombro",
+    "ejercicios": [
+      { "tipo": "frontal", "nombre": "press militar" },
+      { "tipo": "frontal", "nombre": "elevaciones frontales con polea" },
+      { "tipo": "lateral", "nombre": "elevaciones laterales con mancuernas" },
+      { "tipo": "lateral", "nombre": "elevaciones laterales en polea" },
+      { "tipo": "lateral", "nombre": "laterales en banco inclinado" },
+      { "tipo": "posterior", "nombre": "face pull en polea alta" },
+      { "tipo": "posterior", "nombre": "pájaros con mancuernas" }
+    ]
+  },
+  {
+    "musculo": "biceps",
+    "ejercicios": [
+      { "tipo": "cabeza larga", "nombre": "curl en banco inclinado" },
+      { "tipo": "cabeza larga", "nombre": "curl arrastre con barra" },
+      { "tipo": "cabeza corta", "nombre": "curl predicador / scott" },
+      { "tipo": "cabeza corta", "nombre": "curl araña" },
+      { "tipo": "braquial", "nombre": "curl martillo con mancuernas" },
+      { "tipo": "braquial", "nombre": "curl martillo en polea con cuerda" }
+    ]
+  },
+  {
+    "musculo": "triceps",
+    "ejercicios": [
+      { "tipo": "cabeza larga", "nombre": "press francés con barra Z" },
+      { "tipo": "cabeza larga", "nombre": "extensión trasnuca en polea" },
+      { "tipo": "cabeza lateral", "nombre": "extensión en polea con barra recta" },
+      { "tipo": "cabeza lateral", "nombre": "extensión en polea con cuerda" },
+      { "tipo": "cabeza medial", "nombre": "extensión invertida con agarre supino" },
+      { "tipo": "compuesto", "nombre": "fondos entre bancos o paralelas" }
+    ]
+  },
+  {
+    "musculo": "pierna",
+    "ejercicios": [
+      { "tipo": "cuadriceps", "nombre": "sentadilla con barra trasera" },
+      { "tipo": "cuadriceps", "nombre": "prensa inclinada" },
+      { "tipo": "cuadriceps", "nombre": "extensiones de cuádriceps en máquina" },
+      { "tipo": "isquios", "nombre": "curl femoral tumbado" },
+      { "tipo": "isquios", "nombre": "curl femoral sentado" },
+      { "tipo": "isquios/gluteo", "nombre": "peso muerto rumano" },
+      { "tipo": "gluteo", "nombre": "hip thrust con barra" },
+      { "tipo": "gemelo", "nombre": "elevación de talones de pie" },
+      { "tipo": "gemelo", "nombre": "elevación de talones sentado" }
+    ]
+  }
 ]
