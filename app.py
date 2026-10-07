@@ -1,4 +1,5 @@
 import json
+import os
 import random
 from datetime import date
 import requests
@@ -7,9 +8,36 @@ import streamlit.components.v1 as components
 
 st.set_page_config(page_title="Gym Routine", page_icon="🏋️‍♂️", layout="centered")
 
+# --- ARCHIVOS Y PERSISTENCIA ---
+PESOS_FILE = "pesos.json"
+
 def cargar_ejercicios():
-    with open("exercises.json", "r") as f:
+    with open("exercises.json", "r", encoding="utf-8") as f:
         return json.load(f)
+
+def cargar_pesos():
+    if os.path.exists(PESOS_FILE):
+        try:
+            with open(PESOS_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return {}
+    return {}
+
+def guardar_pesos(pesos):
+    try:
+        with open(PESOS_FILE, "w", encoding="utf-8") as f:
+            json.dump(pesos, f, ensure_ascii=False, indent=2)
+    except Exception:
+        pass
+
+# --- INICIALIZACIÓN DE ESTADO (SESSION STATE) ---
+if "rutina_activa" not in st.session_state:
+    st.session_state["rutina_activa"] = None
+if "completados" not in st.session_state:
+    st.session_state["completados"] = {}
+if "pesos" not in st.session_state:
+    st.session_state["pesos"] = cargar_pesos()
 
 def seleccionar_ejercicios_variados(ejercicios, cantidad):
     """Selecciona ejercicios priorizando tipos distintos."""
@@ -32,7 +60,7 @@ def seleccionar_ejercicios_variados(ejercicios, cantidad):
             elegidos.append(ej_al_azar)
             por_tipo[tipo].remove(ej_al_azar)
 
-    # 2. Rellenar si faltan
+    # 2. Rellenar si faltan sin repetir ejercicios
     if len(elegidos) < cantidad:
         sobrantes = [ej for lista in por_tipo.values() for ej in lista]
         faltan = cantidad - len(elegidos)
@@ -42,10 +70,10 @@ def seleccionar_ejercicios_variados(ejercicios, cantidad):
     elegidos.sort(key=lambda x: x["tipo"])
     return elegidos
 
-# Carga de datos
+# Carga de ejercicios base
 datos = cargar_ejercicios()
 
-# Configuración de rutinas
+# Rutinas predeterminadas
 CONFIG_RUTINAS = {
     "Pierna (5 ejercicios)": [
         {"musculo": "pierna", "cantidad": 5}
@@ -61,12 +89,12 @@ CONFIG_RUTINAS = {
     ]
 }
 
-# --- TÍTULO ---
+# --- ENCABEZADO ---
 st.title("🏋️‍♂️ Rutina de Entrenamiento")
 st.caption(f"Fecha: {date.today().strftime('%d/%m/%Y')}")
 
-# --- TEMPORIZADOR DE DESCANSO (HTML/JS ultraligero) ---
-with st.expander("⏱️ Temporizador de Descanso", expanded=True):
+# --- TEMPORIZADOR DE DESCANSO ---
+with st.expander("⏱️ Temporizador de Descanso", expanded=False):
     temporizador_html = """
     <div style="text-align: center; font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: #1a1c24; padding: 15px; border-radius: 12px; color: white;">
         <div id="display" style="font-size: 42px; font-weight: bold; margin-bottom: 10px; font-variant-numeric: tabular-nums;">01:30</div>
@@ -164,35 +192,134 @@ with st.expander("⏱️ Temporizador de Descanso", expanded=True):
 
 st.divider()
 
-# --- SELECCIÓN Y GENERACIÓN DE RUTINA ---
-dia_seleccionado = st.selectbox(
-    "Selecciona el día de hoy:",
-    options=list(CONFIG_RUTINAS.keys())
+# --- CONFIGURACIÓN DE LA RUTINA ---
+modo = st.radio(
+    "Modalidad de entrenamiento:",
+    ["📋 Rutinas predefinidas", "🎯 Personalizar músculos"],
+    horizontal=True
 )
 
-if st.button("🔥 Generar Rutina del Día", type="primary", use_container_width=True):
+plan_a_generar = []
+
+if modo == "📋 Rutinas predefinidas":
+    dia_seleccionado = st.selectbox(
+        "Selecciona el día de hoy:",
+        options=list(CONFIG_RUTINAS.keys())
+    )
+    plan_a_generar = CONFIG_RUTINAS[dia_seleccionado]
+else:
+    musculos_disponibles = [item["musculo"] for item in datos]
+    musculos_seleccionados = st.multiselect(
+        "Elige qué músculos vas a entrenar hoy:",
+        options=musculos_disponibles,
+        default=["pecho", "triceps"] if "pecho" in musculos_disponibles else [musculos_disponibles[0]],
+        format_func=lambda x: x.capitalize()
+    )
+
+    if musculos_seleccionados:
+        st.write("Ajusta la cantidad de ejercicios:")
+        for m in musculos_seleccionados:
+            max_ej = len(next(item["ejercicios"] for item in datos if item["musculo"] == m))
+            cant = st.slider(
+                f"Ejercicios de {m.capitalize()}:",
+                min_value=1,
+                max_value=max_ej,
+                value=min(2, max_ej),
+                key=f"slider_{m}"
+            )
+            plan_a_generar.append({"musculo": m, "cantidad": cant})
+
+# Botones de control de rutina
+col_gen, col_limpiar = st.columns([3, 1])
+
+with col_gen:
+    if st.button("🔥 Generar Rutina", type="primary", use_container_width=True):
+        if not plan_a_generar:
+            st.warning("Selecciona al menos un músculo.")
+        else:
+            nueva_rutina = []
+            for bloque in plan_a_generar:
+                nombre_m = bloque["musculo"]
+                cant_m = bloque["cantidad"]
+                ejercicios_m = next((item["ejercicios"] for item in datos if item["musculo"] == nombre_m), [])
+                seleccionados = seleccionar_ejercicios_variados(ejercicios_m, cant_m)
+                nueva_rutina.append({
+                    "musculo": nombre_m,
+                    "ejercicios": seleccionados
+                })
+            # Guardamos la rutina en el estado permanente
+            st.session_state["rutina_activa"] = nueva_rutina
+            st.session_state["completados"] = {}
+
+with col_limpiar:
+    if st.button("🗑️ Limpiar", use_container_width=True):
+        st.session_state["rutina_activa"] = None
+        st.session_state["completados"] = {}
+        st.rerun()
+
+# --- MOSTRAR RUTINA ACTIVA (PERSISTENTE) ---
+if st.session_state["rutina_activa"]:
     st.divider()
-    plan = CONFIG_RUTINAS[dia_seleccionado]
 
-    for bloque in plan:
-        nombre_musculo = bloque["musculo"]
-        cantidad = bloque["cantidad"]
+    # Opción para ocultar ejercicios ya terminados
+    ocultar_terminados = st.checkbox("Ocultar ejercicios completados", value=False)
 
-        ejercicios_musculo = []
-        for item in datos:
-            if item["musculo"] == nombre_musculo:
-                ejercicios_musculo = item["ejercicios"]
-                break
+    for bloque in st.session_state["rutina_activa"]:
+        nombre_m = bloque["musculo"]
+        ejercicios = bloque["ejercicios"]
 
-        rutina_musculo = seleccionar_ejercicios_variados(ejercicios_musculo, cantidad)
+        st.subheader(f"{nombre_m.upper()} ({len(ejercicios)} ejercicios)")
 
-        st.subheader(f"{nombre_musculo.upper()} ({len(rutina_musculo)} ejercicios)")
-        ultimo_tipo = ""
-        for ej in rutina_musculo:
-            if ultimo_tipo != ej["tipo"]:
-                st.markdown(f"**— {ej['tipo'].upper()} —**")
-                ultimo_tipo = ej["tipo"]
-            st.info(f"💪 {ej['nombre'].capitalize()}")
+        for ej in ejercicios:
+            nombre_ej = ej["nombre"]
+            tipo_ej = ej["tipo"]
+            key_ej = f"{nombre_m}_{nombre_ej}"
+
+            esta_completado = st.session_state["completados"].get(key_ej, False)
+
+            if ocultar_terminados and esta_completado:
+                continue
+
+            # Contenedor visual para cada ejercicio
+            with st.container():
+                c_check, c_info, c_peso = st.columns([1, 4, 2])
+
+                with c_check:
+                    hecho = st.checkbox(
+                        "Listo",
+                        value=esta_completado,
+                        key=f"check_{key_ej}",
+                        label_visibility="collapsed"
+                    )
+                    if hecho != esta_completado:
+                        st.session_state["completados"][key_ej] = hecho
+                        st.rerun()
+
+                with c_info:
+                    if hecho:
+                        st.markdown(f"~~**{nombre_ej.capitalize()}**~~")
+                        st.caption(f"✅ Completado ({tipo_ej})")
+                    else:
+                        st.markdown(f"**{nombre_ej.capitalize()}**")
+                        st.caption(f"Tipo: {tipo_ej}")
+
+                with c_peso:
+                    peso_guardado = float(st.session_state["pesos"].get(nombre_ej, 0.0))
+                    nuevo_peso = st.number_input(
+                        "kg",
+                        min_value=0.0,
+                        max_value=500.0,
+                        value=peso_guardado,
+                        step=2.5,
+                        key=f"peso_{key_ej}",
+                        label_visibility="collapsed"
+                    )
+                    # Si el peso cambia, se actualiza el estado y se guarda en el archivo
+                    if nuevo_peso != peso_guardado:
+                        st.session_state["pesos"][nombre_ej] = nuevo_peso
+                        guardar_pesos(st.session_state["pesos"])
+
+            st.write("")
 
 # --- BUZÓN DE SUGERENCIAS VÍA TELEGRAM ---
 st.divider()
