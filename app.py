@@ -8,39 +8,47 @@ import streamlit.components.v1 as components
 
 st.set_page_config(page_title="Gym Routine", page_icon="🏋️‍♂️", layout="centered")
 
-# --- ARCHIVOS Y PERSISTENCIA ---
-PESOS_FILE = "pesos.json"
+DATA_FILE = "datos_usuarios.json"
+EXERCISES_FILE = "exercises.json"
+
+# Rutinas estándar de inicio para perfiles nuevos
+RUTINAS_DEFECTO = {
+    "Pierna": [
+        {"musculo": "pierna", "cantidad": 5}
+    ],
+    "Espalda y Tríceps": [
+        {"musculo": "espalda", "cantidad": 4},
+        {"musculo": "triceps", "cantidad": 2}
+    ],
+    "Pecho, Hombro y Bíceps": [
+        {"musculo": "pecho", "cantidad": 2},
+        {"musculo": "hombro", "cantidad": 2},
+        {"musculo": "biceps", "cantidad": 2}
+    ]
+}
 
 def cargar_ejercicios():
-    with open("exercises.json", "r", encoding="utf-8") as f:
+    with open(EXERCISES_FILE, "r", encoding="utf-8") as f:
         return json.load(f)
 
-def cargar_pesos():
-    if os.path.exists(PESOS_FILE):
+def cargar_datos_usuarios():
+    if os.path.exists(DATA_FILE):
         try:
-            with open(PESOS_FILE, "r", encoding="utf-8") as f:
+            with open(DATA_FILE, "r", encoding="utf-8") as f:
                 return json.load(f)
         except Exception:
             return {}
     return {}
 
-def guardar_pesos(pesos):
+def guardar_datos_usuarios(datos):
     try:
-        with open(PESOS_FILE, "w", encoding="utf-8") as f:
-            json.dump(pesos, f, ensure_ascii=False, indent=2)
+        with open(DATA_FILE, "w", encoding="utf-8") as f:
+            json.dump(datos, f, ensure_ascii=False, indent=2)
     except Exception:
         pass
 
-# --- INICIALIZACIÓN DE ESTADO (SESSION STATE) ---
-if "rutina_activa" not in st.session_state:
-    st.session_state["rutina_activa"] = None
-if "completados" not in st.session_state:
-    st.session_state["completados"] = {}
-if "pesos" not in st.session_state:
-    st.session_state["pesos"] = cargar_pesos()
-
 def seleccionar_ejercicios_variados(ejercicios, cantidad):
-    """Selecciona ejercicios priorizando tipos distintos."""
+    """Selecciona ejercicios garantizando variedad por categoría."""
     por_tipo = {}
     for ej in ejercicios:
         t = ej["tipo"]
@@ -53,14 +61,14 @@ def seleccionar_ejercicios_variados(ejercicios, cantidad):
 
     elegidos = []
 
-    # 1. Uno de cada tipo
+    # 1. Un ejercicio por cada tipo distinto
     for tipo in tipos_disponibles:
         if len(elegidos) < cantidad and por_tipo[tipo]:
             ej_al_azar = random.choice(por_tipo[tipo])
             elegidos.append(ej_al_azar)
             por_tipo[tipo].remove(ej_al_azar)
 
-    # 2. Rellenar si faltan sin repetir ejercicios
+    # 2. Completar con los restantes sin repetir
     if len(elegidos) < cantidad:
         sobrantes = [ej for lista in por_tipo.values() for ej in lista]
         faltan = cantidad - len(elegidos)
@@ -70,28 +78,53 @@ def seleccionar_ejercicios_variados(ejercicios, cantidad):
     elegidos.sort(key=lambda x: x["tipo"])
     return elegidos
 
-# Carga de ejercicios base
-datos = cargar_ejercicios()
+# Carga de catálogo de ejercicios y base de perfiles
+ejercicios_base = cargar_ejercicios()
+db_usuarios = cargar_datos_usuarios()
 
-# Rutinas predeterminadas
-CONFIG_RUTINAS = {
-    "Pierna (5 ejercicios)": [
-        {"musculo": "pierna", "cantidad": 5}
-    ],
-    "Espalda y Tríceps (4 espalda + 2 tríceps)": [
-        {"musculo": "espalda", "cantidad": 4},
-        {"musculo": "triceps", "cantidad": 2}
-    ],
-    "Pecho, Hombro y Bíceps (2 pecho + 2 hombro + 2 bíceps)": [
-        {"musculo": "pecho", "cantidad": 2},
-        {"musculo": "hombro", "cantidad": 2},
-        {"musculo": "biceps", "cantidad": 2}
-    ]
-}
+# Garantizar al menos un usuario por defecto
+if not db_usuarios:
+    db_usuarios["Arturo"] = {
+        "rutinas": RUTINAS_DEFECTO.copy(),
+        "pesos": {}
+    }
+    guardar_datos_usuarios(db_usuarios)
 
-# --- ENCABEZADO ---
+# --- CABECERA Y SELECCIÓN DE USUARIO ---
 st.title("🏋️‍♂️ Rutina de Entrenamiento")
 st.caption(f"Fecha: {date.today().strftime('%d/%m/%Y')}")
+
+nombres_usuarios = list(db_usuarios.keys())
+col_user, col_add_user = st.columns([3, 1])
+
+with col_user:
+    usuario_activo = st.selectbox(
+        "Perfil activo:",
+        options=nombres_usuarios,
+        key="selector_usuario"
+    )
+
+with col_add_user:
+    with st.popover("➕ Nuevo"):
+        nuevo_nombre = st.text_input("Nombre de usuario:")
+        if st.button("Crear perfil", use_container_width=True):
+            nombre_limpio = nuevo_nombre.strip()
+            if nombre_limpio and nombre_limpio not in db_usuarios:
+                db_usuarios[nombre_limpio] = {
+                    "rutinas": RUTINAS_DEFECTO.copy(),
+                    "pesos": {}
+                }
+                guardar_datos_usuarios(db_usuarios)
+                st.session_state["selector_usuario"] = nombre_limpio
+                st.rerun()
+
+datos_perfil = db_usuarios[usuario_activo]
+
+# Inicialización del estado en la sesión
+if "rutina_activa" not in st.session_state:
+    st.session_state["rutina_activa"] = None
+if "completados" not in st.session_state:
+    st.session_state["completados"] = {}
 
 # --- TEMPORIZADOR DE DESCANSO ---
 with st.expander("⏱️ Temporizador de Descanso", expanded=False):
@@ -192,36 +225,39 @@ with st.expander("⏱️ Temporizador de Descanso", expanded=False):
 
 st.divider()
 
-# --- CONFIGURACIÓN DE LA RUTINA ---
+# --- CONFIGURACIÓN DE LA SESIÓN DE ENTRENAMIENTO ---
 modo = st.radio(
-    "Modalidad de entrenamiento:",
-    ["📋 Rutinas predefinidas", "🎯 Personalizar músculos"],
+    "Modalidad:",
+    ["📋 Rutinas guardadas", "🎯 Personalizar músculos"],
     horizontal=True
 )
 
 plan_a_generar = []
 
-if modo == "📋 Rutinas predefinidas":
-    dia_seleccionado = st.selectbox(
-        "Selecciona el día de hoy:",
-        options=list(CONFIG_RUTINAS.keys())
-    )
-    plan_a_generar = CONFIG_RUTINAS[dia_seleccionado]
+if modo == "📋 Rutinas guardadas":
+    rutinas_usuario = datos_perfil.get("rutinas", {})
+    if not rutinas_usuario:
+        st.info("No tienes rutinas registradas. Crea una en 'Personalizar músculos'.")
+    else:
+        nombre_rutina_sel = st.selectbox(
+            "Selecciona la rutina:",
+            options=list(rutinas_usuario.keys())
+        )
+        plan_a_generar = rutinas_usuario[nombre_rutina_sel]
 else:
-    musculos_disponibles = [item["musculo"] for item in datos]
+    musculos_disponibles = [item["musculo"] for item in ejercicios_base]
     musculos_seleccionados = st.multiselect(
-        "Elige qué músculos vas a entrenar hoy:",
+        "Músculos a entrenar:",
         options=musculos_disponibles,
         default=["pecho", "triceps"] if "pecho" in musculos_disponibles else [musculos_disponibles[0]],
         format_func=lambda x: x.capitalize()
     )
 
     if musculos_seleccionados:
-        st.write("Ajusta la cantidad de ejercicios:")
         for m in musculos_seleccionados:
-            max_ej = len(next(item["ejercicios"] for item in datos if item["musculo"] == m))
+            max_ej = len(next(item["ejercicios"] for item in ejercicios_base if item["musculo"] == m))
             cant = st.slider(
-                f"Ejercicios de {m.capitalize()}:",
+                f"{m.capitalize()}:",
                 min_value=1,
                 max_value=max_ej,
                 value=min(2, max_ej),
@@ -229,7 +265,20 @@ else:
             )
             plan_a_generar.append({"musculo": m, "cantidad": cant})
 
-# Botones de control de rutina
+        # Guardar como rutina predeterminada del usuario
+        with st.expander("💾 Guardar esta combinación en mis rutinas"):
+            nombre_nueva_rutina = st.text_input("Nombre de la rutina (ej. Pierna y Hombro):")
+            if st.button("Guardar en mi perfil", use_container_width=True):
+                nombre_guardar = nombre_nueva_rutina.strip()
+                if nombre_guardar:
+                    datos_perfil["rutinas"][nombre_guardar] = plan_a_generar
+                    db_usuarios[usuario_activo] = datos_perfil
+                    guardar_datos_usuarios(db_usuarios)
+                    st.success(f"Rutina '{nombre_guardar}' añadida a tus rutinas guardadas.")
+                else:
+                    st.warning("Introduce un nombre para la rutina.")
+
+# Botones de acción
 col_gen, col_limpiar = st.columns([3, 1])
 
 with col_gen:
@@ -241,13 +290,12 @@ with col_gen:
             for bloque in plan_a_generar:
                 nombre_m = bloque["musculo"]
                 cant_m = bloque["cantidad"]
-                ejercicios_m = next((item["ejercicios"] for item in datos if item["musculo"] == nombre_m), [])
+                ejercicios_m = next((item["ejercicios"] for item in ejercicios_base if item["musculo"] == nombre_m), [])
                 seleccionados = seleccionar_ejercicios_variados(ejercicios_m, cant_m)
                 nueva_rutina.append({
                     "musculo": nombre_m,
                     "ejercicios": seleccionados
                 })
-            # Guardamos la rutina en el estado permanente
             st.session_state["rutina_activa"] = nueva_rutina
             st.session_state["completados"] = {}
 
@@ -257,30 +305,28 @@ with col_limpiar:
         st.session_state["completados"] = {}
         st.rerun()
 
-# --- MOSTRAR RUTINA ACTIVA (PERSISTENTE) ---
+# --- MOSTRAR RUTINA ACTIVA ---
 if st.session_state["rutina_activa"]:
     st.divider()
-
-    # Opción para ocultar ejercicios ya terminados
     ocultar_terminados = st.checkbox("Ocultar ejercicios completados", value=False)
 
     for bloque in st.session_state["rutina_activa"]:
         nombre_m = bloque["musculo"]
         ejercicios = bloque["ejercicios"]
 
-        st.subheader(f"{nombre_m.upper()} ({len(ejercicios)} ejercicios)")
+        # Subheading limpio sin recuentos
+        st.subheader(nombre_m.upper())
 
         for ej in ejercicios:
             nombre_ej = ej["nombre"]
             tipo_ej = ej["tipo"]
-            key_ej = f"{nombre_m}_{nombre_ej}"
+            key_ej = f"{usuario_activo}_{nombre_m}_{nombre_ej}"
 
             esta_completado = st.session_state["completados"].get(key_ej, False)
 
             if ocultar_terminados and esta_completado:
                 continue
 
-            # Contenedor visual para cada ejercicio
             with st.container():
                 c_check, c_info, c_peso = st.columns([1, 4, 2])
 
@@ -304,7 +350,10 @@ if st.session_state["rutina_activa"]:
                         st.caption(f"Tipo: {tipo_ej}")
 
                 with c_peso:
-                    peso_guardado = float(st.session_state["pesos"].get(nombre_ej, 0.0))
+                    # Peso vinculado únicamente al usuario activo
+                    pesos_usuario = datos_perfil.setdefault("pesos", {})
+                    peso_guardado = float(pesos_usuario.get(nombre_ej, 0.0))
+
                     nuevo_peso = st.number_input(
                         "kg",
                         min_value=0.0,
@@ -314,10 +363,10 @@ if st.session_state["rutina_activa"]:
                         key=f"peso_{key_ej}",
                         label_visibility="collapsed"
                     )
-                    # Si el peso cambia, se actualiza el estado y se guarda en el archivo
                     if nuevo_peso != peso_guardado:
-                        st.session_state["pesos"][nombre_ej] = nuevo_peso
-                        guardar_pesos(st.session_state["pesos"])
+                        pesos_usuario[nombre_ej] = nuevo_peso
+                        db_usuarios[usuario_activo] = datos_perfil
+                        guardar_datos_usuarios(db_usuarios)
 
             st.write("")
 
@@ -325,7 +374,7 @@ if st.session_state["rutina_activa"]:
 st.divider()
 with st.expander("💬 ¿Tienes sugerencias o mejoras? Déjalas aquí"):
     with st.form("form_sugerencias", clear_on_submit=True):
-        nombre = st.text_input("Tu nombre:")
+        nombre = st.text_input("Tu nombre:", value=usuario_activo)
         mensaje = st.text_area("¿Qué añadirías o cambiarías?")
         enviado = st.form_submit_button("Enviar sugerencia", use_container_width=True)
 
