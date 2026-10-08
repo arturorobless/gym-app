@@ -12,64 +12,12 @@ st.set_page_config(page_title="Gym Routine", page_icon="🏋️‍♂️", layou
 DATA_FILE = "datos_usuarios.json"
 EXERCISES_FILE = "exercises.json"
 
-# --- DICCIONARIO DE ILUSTRACIONES Y TÉCNICA DE CADA EJERCICIO ---
-# --- DICCIONARIO DE ILUSTRACIONES Y TÉCNICA DE CADA EJERCICIO ---
-IMAGENES_EJERCICIOS = {
-    # Pecho
-    "press inclinado con mancuernas": "https://musclewiki.com/exercises/chest/dumbbell-incline-bench-press",
-    "press inclinado en máquina": "https://musclewiki.com/exercises/chest/machine-incline-press",
-    "press banca plano con barra": "https://musclewiki.com/exercises/chest/barbell-bench-press",
-    "aperturas en polea media": "https://musclewiki.com/exercises/chest/cable-crossover",
-
-    # Espalda
-    "jalón al pecho agarre prono": "https://musclewiki.com/exercises/lats/cable-lat-pulldown",
-    "dominadas": "https://musclewiki.com/exercises/lats/pull-ups",
-    "pullover en polea alta": "https://musclewiki.com/exercises/lats/cable-straight-arm-pulldown",
-    "remo con barra": "https://musclewiki.com/exercises/traps-middle/barbell-bent-over-row",
-    "remo gironda en polea baja": "https://musclewiki.com/exercises/traps-middle/cable-seated-row",
-    "remo con mancuerna a una mano": "https://musclewiki.com/exercises/traps-middle/dumbbell-single-arm-row",
-    "peso muerto convencional": "https://musclewiki.com/exercises/glutes/barbell-deadlift",
-    "hiperextensiones": "https://musclewiki.com/exercises/lower-back/hyperextensions",
-
-    # Hombro
-    "press militar": "https://musclewiki.com/exercises/shoulders/barbell-overhead-press",
-    "elevaciones frontales con polea": "https://musclewiki.com/exercises/shoulders/cable-front-raise",
-    "elevaciones laterales con mancuernas": "https://musclewiki.com/exercises/shoulders/dumbbell-lateral-raise",
-    "elevaciones laterales en polea": "https://musclewiki.com/exercises/shoulders/cable-lateral-raise",
-    "laterales en banco inclinado": "https://musclewiki.com/exercises/shoulders/incline-dumbbell-lateral-raise",
-
-    # Bíceps
-    "curl en banco inclinado": "https://musclewiki.com/exercises/biceps/incline-dumbbell-curl",
-    "curl arrastre con barra": "https://musclewiki.com/exercises/biceps/barbell-drag-curl",
-    "curl predicador / scott": "https://musclewiki.com/exercises/biceps/barbell-preacher-curl",
-    "curl araña": "https://musclewiki.com/exercises/biceps/dumbbell-spider-curl",
-    "curl martillo con mancuernas": "https://musclewiki.com/exercises/biceps/dumbbell-hammer-curl",
-    "curl martillo en polea con cuerda": "https://musclewiki.com/exercises/biceps/cable-rope-hammer-curl",
-
-    # Tríceps
-    "press francés con barra Z": "https://musclewiki.com/exercises/triceps/barbell-lying-triceps-extension",
-    "extensión trasnuca en polea": "https://musclewiki.com/exercises/triceps/cable-overhead-triceps-extension",
-    "extensión en polea con barra recta": "https://musclewiki.com/exercises/triceps/cable-straight-bar-pushdown",
-    "extensión en polea con cuerda": "https://musclewiki.com/exercises/triceps/cable-rope-pushdown",
-    "extensión invertida con agarre supino": "https://musclewiki.com/exercises/triceps/cable-reverse-grip-pushdown",
-    "fondos entre bancos o paralelas": "https://musclewiki.com/exercises/triceps/parallel-bar-dips",
-
-    # Pierna
-    "sentadilla con barra trasera": "https://musclewiki.com/exercises/quads/barbell-squat",
-    "prensa inclinada": "https://musclewiki.com/exercises/quads/sled-45-leg-press",
-    "extensiones de cuádriceps en máquina": "https://musclewiki.com/exercises/quads/lever-leg-extension",
-    "curl femoral tumbado": "https://musclewiki.com/exercises/hamstrings/lever-lying-leg-curl",
-    "curl femoral sentado": "https://musclewiki.com/exercises/hamstrings/lever-seated-leg-curl",
-    "peso muerto rumano": "https://musclewiki.com/exercises/hamstrings/barbell-romanian-deadlift",
-    "hip thrust con barra": "https://musclewiki.com/exercises/glutes/barbell-hip-thrust",
-    "elevación de talones de pie": "https://musclewiki.com/exercises/calves/standing-calf-raise",
-    "elevación de talones sentado": "https://musclewiki.com/exercises/calves/seated-calf-raise"
-}
+# --- LÓGICA PARA BUSCAR IMÁGENES SEGURAS ---
 def obtener_enlace_imagen(nombre_ejercicio):
-    clave = nombre_ejercicio.strip().lower()
-    if clave in IMAGENES_EJERCICIOS:
-        return IMAGENES_EJERCICIOS[clave]
-    return f"https://musclewiki.com/search?q={urllib.parse.quote(nombre_ejercicio)}"
+    # Genera una búsqueda directa en Google Imágenes enfocada en la técnica
+    termino_busqueda = f"técnica ejecución {nombre_ejercicio} gimnasio"
+    enlace = f"https://www.google.com/search?tbm=isch&q={urllib.parse.quote(termino_busqueda)}"
+    return enlace
 
 RUTINAS_DEFECTO = {
     "Pierna": [
@@ -184,7 +132,6 @@ with st.expander("⏱️ Temporizador de Descanso", expanded=True):
     temporizador_html = """
     <div style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: #14161f; padding: 14px; border-radius: 14px; color: white;">
         
-        <!-- BARRA DISCRETA: TIEMPO TOTAL EN EL GIMNASIO -->
         <div style="display: flex; justify-content: space-between; align-items: center; background: #1f2330; padding: 8px 12px; border-radius: 8px; margin-bottom: 14px; border: 1px solid #2f354a;">
             <div style="display: flex; align-items: center; gap: 8px;">
                 <span style="font-size: 13px; color: #9aa1b5; font-weight: 600;">🏋️ Sesión:</span>
@@ -196,12 +143,10 @@ with st.expander("⏱️ Temporizador de Descanso", expanded=True):
             </div>
         </div>
 
-        <!-- SECCIÓN PRINCIPAL: CRONÓMETRO DE DESCANSO GIGANTE -->
         <div style="text-align: center;">
             <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; color: #ff7675; font-weight: 700; margin-bottom: 2px;">⏳ DESCANSO ENTRE SERIES</div>
             <div id="restDisplay" style="font-size: 54px; font-weight: 800; margin: 4px 0 10px 0; font-variant-numeric: tabular-nums; color: #ffffff; letter-spacing: 1px;">01:30</div>
 
-            <!-- BOTONES RÁPIDOS AMPLIOS PARA EL MÓVIL -->
             <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; flex-wrap: wrap;">
                 <button onclick="fijar(60)" style="flex: 1; max-width: 75px; padding: 8px 0; border-radius: 8px; border: 1px solid #3c4257; background: #252a3a; color: #f0f2f8; font-size: 14px; font-weight: 600; cursor: pointer;">60s</button>
                 <button onclick="fijar(90)" style="flex: 1; max-width: 75px; padding: 8px 0; border-radius: 8px; border: 1px solid #3c4257; background: #252a3a; color: #f0f2f8; font-size: 14px; font-weight: 600; cursor: pointer;">90s</button>
@@ -209,17 +154,14 @@ with st.expander("⏱️ Temporizador de Descanso", expanded=True):
                 <button onclick="sumar(30)" style="flex: 1; max-width: 75px; padding: 8px 0; border-radius: 8px; border: 1px solid #3c4257; background: #252a3a; color: #ff8585; font-size: 14px; font-weight: 700; cursor: pointer;">+30s</button>
             </div>
 
-            <!-- BOTONES DE ACCIÓN PRINCIPALES -->
             <div style="display: flex; gap: 10px; justify-content: center;">
                 <button id="btnRest" onclick="toggleRest()" style="flex: 2; max-width: 190px; padding: 12px 0; border-radius: 10px; border: none; background: #ff4b4b; color: white; font-weight: 800; font-size: 17px; cursor: pointer; box-shadow: 0 4px 12px rgba(255, 75, 75, 0.3);">Iniciar</button>
                 <button onclick="reiniciarRest()" style="flex: 1; max-width: 100px; padding: 12px 0; border-radius: 10px; border: 1px solid #4a5166; background: transparent; color: #d0d4e4; font-weight: 700; font-size: 14px; cursor: pointer;">Reset</button>
             </div>
         </div>
-
     </div>
 
     <script>
-        // --- SESIÓN GYM CON MEMORIA LOCAL ---
         let sessionRunning = localStorage.getItem("gym_session_running") === "true";
         let sessionStartTime = localStorage.getItem("gym_session_start") ? parseInt(localStorage.getItem("gym_session_start")) : null;
         let sessionAccumulated = localStorage.getItem("gym_session_accumulated") ? parseInt(localStorage.getItem("gym_session_accumulated")) : 0;
@@ -285,7 +227,6 @@ with st.expander("⏱️ Temporizador de Descanso", expanded=True):
         setInterval(updateSessionUI, 1000);
         updateSessionUI();
 
-        // --- TEMPORIZADOR DE DESCANSO ---
         let restRestante = 90;
         let restInicial = 90;
         let restIntervalo = null;
@@ -492,7 +433,7 @@ if st.session_state["rutina_activa"]:
                     st.link_button(
                         "🖼️",
                         enlace_foto,
-                        help=f"Ver técnica e ilustración de {nombre_ej.capitalize()}",
+                        help=f"Ver imágenes técnicas de {nombre_ej.capitalize()}",
                         use_container_width=True
                     )
 
