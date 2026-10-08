@@ -13,58 +13,58 @@ DATA_FILE = "datos_usuarios.json"
 EXERCISES_FILE = "exercises.json"
 
 # --- DICCIONARIO DE ILUSTRACIONES Y TÉCNICA DE CADA EJERCICIO ---
+# --- DICCIONARIO DE ILUSTRACIONES Y TÉCNICA DE CADA EJERCICIO ---
 IMAGENES_EJERCICIOS = {
     # Pecho
-    "press inclinado con mancuernas": "https://musclewiki.com/exercises/male/chest/incline-dumbbell-bench-press",
-    "press inclinado en máquina": "https://musclewiki.com/exercises/male/chest/machine-incline-press",
-    "press banca plano con barra": "https://musclewiki.com/exercises/male/chest/barbell-bench-press",
-    "aperturas en polea media": "https://musclewiki.com/exercises/male/chest/cable-crossover",
+    "press inclinado con mancuernas": "https://musclewiki.com/exercises/chest/dumbbell-incline-bench-press",
+    "press inclinado en máquina": "https://musclewiki.com/exercises/chest/machine-incline-press",
+    "press banca plano con barra": "https://musclewiki.com/exercises/chest/barbell-bench-press",
+    "aperturas en polea media": "https://musclewiki.com/exercises/chest/cable-crossover",
 
     # Espalda
-    "jalón al pecho agarre prono": "https://musclewiki.com/exercises/male/lats/lat-pulldown",
-    "dominadas": "https://musclewiki.com/exercises/male/lats/pull-ups",
-    "pullover en polea alta": "https://musclewiki.com/exercises/male/lats/cable-straight-arm-pulldown",
-    "remo con barra": "https://musclewiki.com/exercises/male/traps-middle/barbell-bent-over-row",
-    "remo gironda en polea baja": "https://musclewiki.com/exercises/male/traps-middle/cable-seated-row",
-    "remo con mancuerna a una mano": "https://musclewiki.com/exercises/male/traps-middle/dumbbell-single-arm-row",
-    "peso muerto convencional": "https://musclewiki.com/exercises/male/glutes/barbell-deadlift",
-    "hiperextensiones": "https://musclewiki.com/exercises/male/lower-back/hyperextensions",
+    "jalón al pecho agarre prono": "https://musclewiki.com/exercises/lats/cable-lat-pulldown",
+    "dominadas": "https://musclewiki.com/exercises/lats/pull-ups",
+    "pullover en polea alta": "https://musclewiki.com/exercises/lats/cable-straight-arm-pulldown",
+    "remo con barra": "https://musclewiki.com/exercises/traps-middle/barbell-bent-over-row",
+    "remo gironda en polea baja": "https://musclewiki.com/exercises/traps-middle/cable-seated-row",
+    "remo con mancuerna a una mano": "https://musclewiki.com/exercises/traps-middle/dumbbell-single-arm-row",
+    "peso muerto convencional": "https://musclewiki.com/exercises/glutes/barbell-deadlift",
+    "hiperextensiones": "https://musclewiki.com/exercises/lower-back/hyperextensions",
 
     # Hombro
-    "press militar": "https://musclewiki.com/exercises/male/shoulders/barbell-overhead-press",
-    "elevaciones frontales con polea": "https://musclewiki.com/exercises/male/shoulders/cable-front-raise",
-    "elevaciones laterales con mancuernas": "https://musclewiki.com/exercises/male/shoulders/dumbbell-lateral-raise",
-    "elevaciones laterales en polea": "https://musclewiki.com/exercises/male/shoulders/cable-lateral-raise",
-    "laterales en banco inclinado": "https://musclewiki.com/exercises/male/shoulders/incline-dumbbell-lateral-raise",
+    "press militar": "https://musclewiki.com/exercises/shoulders/barbell-overhead-press",
+    "elevaciones frontales con polea": "https://musclewiki.com/exercises/shoulders/cable-front-raise",
+    "elevaciones laterales con mancuernas": "https://musclewiki.com/exercises/shoulders/dumbbell-lateral-raise",
+    "elevaciones laterales en polea": "https://musclewiki.com/exercises/shoulders/cable-lateral-raise",
+    "laterales en banco inclinado": "https://musclewiki.com/exercises/shoulders/incline-dumbbell-lateral-raise",
 
     # Bíceps
-    "curl en banco inclinado": "https://musclewiki.com/exercises/male/biceps/incline-dumbbell-curl",
-    "curl arrastre con barra": "https://musclewiki.com/exercises/male/biceps/barbell-drag-curl",
-    "curl predicador / scott": "https://musclewiki.com/exercises/male/biceps/barbell-preacher-curl",
-    "curl araña": "https://musclewiki.com/exercises/male/biceps/dumbbell-spider-curl",
-    "curl martillo con mancuernas": "https://musclewiki.com/exercises/male/biceps/dumbbell-hammer-curl",
-    "curl martillo en polea con cuerda": "https://musclewiki.com/exercises/male/biceps/cable-rope-hammer-curl",
+    "curl en banco inclinado": "https://musclewiki.com/exercises/biceps/incline-dumbbell-curl",
+    "curl arrastre con barra": "https://musclewiki.com/exercises/biceps/barbell-drag-curl",
+    "curl predicador / scott": "https://musclewiki.com/exercises/biceps/barbell-preacher-curl",
+    "curl araña": "https://musclewiki.com/exercises/biceps/dumbbell-spider-curl",
+    "curl martillo con mancuernas": "https://musclewiki.com/exercises/biceps/dumbbell-hammer-curl",
+    "curl martillo en polea con cuerda": "https://musclewiki.com/exercises/biceps/cable-rope-hammer-curl",
 
     # Tríceps
-    "press francés con barra Z": "https://musclewiki.com/exercises/male/triceps/barbell-lying-triceps-extension",
-    "extensión trasnuca en polea": "https://musclewiki.com/exercises/male/triceps/cable-overhead-triceps-extension",
-    "extensión en polea con barra recta": "https://musclewiki.com/exercises/male/triceps/cable-straight-bar-pushdown",
-    "extensión en polea con cuerda": "https://musclewiki.com/exercises/male/triceps/cable-rope-pushdown",
-    "extensión invertida con agarre supino": "https://musclewiki.com/exercises/male/triceps/cable-reverse-grip-pushdown",
-    "fondos entre bancos o paralelas": "https://musclewiki.com/exercises/male/triceps/parallel-bar-dips",
+    "press francés con barra Z": "https://musclewiki.com/exercises/triceps/barbell-lying-triceps-extension",
+    "extensión trasnuca en polea": "https://musclewiki.com/exercises/triceps/cable-overhead-triceps-extension",
+    "extensión en polea con barra recta": "https://musclewiki.com/exercises/triceps/cable-straight-bar-pushdown",
+    "extensión en polea con cuerda": "https://musclewiki.com/exercises/triceps/cable-rope-pushdown",
+    "extensión invertida con agarre supino": "https://musclewiki.com/exercises/triceps/cable-reverse-grip-pushdown",
+    "fondos entre bancos o paralelas": "https://musclewiki.com/exercises/triceps/parallel-bar-dips",
 
     # Pierna
-    "sentadilla con barra trasera": "https://musclewiki.com/exercises/male/quads/barbell-squat",
-    "prensa inclinada": "https://musclewiki.com/exercises/male/quads/sled-45-leg-press",
-    "extensiones de cuádriceps en máquina": "https://musclewiki.com/exercises/male/quads/lever-leg-extension",
-    "curl femoral tumbado": "https://musclewiki.com/exercises/male/hamstrings/lever-lying-leg-curl",
-    "curl femoral sentado": "https://musclewiki.com/exercises/male/hamstrings/lever-seated-leg-curl",
-    "peso muerto rumano": "https://musclewiki.com/exercises/male/hamstrings/barbell-romanian-deadlift",
-    "hip thrust con barra": "https://musclewiki.com/exercises/male/glutes/barbell-hip-thrust",
-    "elevación de talones de pie": "https://musclewiki.com/exercises/male/calves/standing-calf-raise",
-    "elevación de talones sentado": "https://musclewiki.com/exercises/male/calves/seated-calf-raise"
+    "sentadilla con barra trasera": "https://musclewiki.com/exercises/quads/barbell-squat",
+    "prensa inclinada": "https://musclewiki.com/exercises/quads/sled-45-leg-press",
+    "extensiones de cuádriceps en máquina": "https://musclewiki.com/exercises/quads/lever-leg-extension",
+    "curl femoral tumbado": "https://musclewiki.com/exercises/hamstrings/lever-lying-leg-curl",
+    "curl femoral sentado": "https://musclewiki.com/exercises/hamstrings/lever-seated-leg-curl",
+    "peso muerto rumano": "https://musclewiki.com/exercises/hamstrings/barbell-romanian-deadlift",
+    "hip thrust con barra": "https://musclewiki.com/exercises/glutes/barbell-hip-thrust",
+    "elevación de talones de pie": "https://musclewiki.com/exercises/calves/standing-calf-raise",
+    "elevación de talones sentado": "https://musclewiki.com/exercises/calves/seated-calf-raise"
 }
-
 def obtener_enlace_imagen(nombre_ejercicio):
     clave = nombre_ejercicio.strip().lower()
     if clave in IMAGENES_EJERCICIOS:
