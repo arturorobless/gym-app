@@ -1,6 +1,7 @@
 import json
 import os
 import random
+import urllib.parse
 from datetime import date
 import requests
 import streamlit as st
@@ -11,7 +12,67 @@ st.set_page_config(page_title="Gym Routine", page_icon="🏋️‍♂️", layou
 DATA_FILE = "datos_usuarios.json"
 EXERCISES_FILE = "exercises.json"
 
-# Rutinas estándar de inicio para perfiles nuevos
+# --- DICCIONARIO DE ILUSTRACIONES Y TÉCNICA DE CADA EJERCICIO ---
+IMAGENES_EJERCICIOS = {
+    # Pecho
+    "press inclinado con mancuernas": "https://musclewiki.com/exercises/male/chest/incline-dumbbell-bench-press",
+    "press inclinado en máquina": "https://musclewiki.com/exercises/male/chest/machine-incline-press",
+    "press banca plano con barra": "https://musclewiki.com/exercises/male/chest/barbell-bench-press",
+    "aperturas en polea media": "https://musclewiki.com/exercises/male/chest/cable-crossover",
+
+    # Espalda
+    "jalón al pecho agarre prono": "https://musclewiki.com/exercises/male/lats/lat-pulldown",
+    "dominadas": "https://musclewiki.com/exercises/male/lats/pull-ups",
+    "pullover en polea alta": "https://musclewiki.com/exercises/male/lats/cable-straight-arm-pulldown",
+    "remo con barra": "https://musclewiki.com/exercises/male/traps-middle/barbell-bent-over-row",
+    "remo gironda en polea baja": "https://musclewiki.com/exercises/male/traps-middle/cable-seated-row",
+    "remo con mancuerna a una mano": "https://musclewiki.com/exercises/male/traps-middle/dumbbell-single-arm-row",
+    "peso muerto convencional": "https://musclewiki.com/exercises/male/glutes/barbell-deadlift",
+    "hiperextensiones": "https://musclewiki.com/exercises/male/lower-back/hyperextensions",
+
+    # Hombro
+    "press militar": "https://musclewiki.com/exercises/male/shoulders/barbell-overhead-press",
+    "elevaciones frontales con polea": "https://musclewiki.com/exercises/male/shoulders/cable-front-raise",
+    "elevaciones laterales con mancuernas": "https://musclewiki.com/exercises/male/shoulders/dumbbell-lateral-raise",
+    "elevaciones laterales en polea": "https://musclewiki.com/exercises/male/shoulders/cable-lateral-raise",
+    "laterales en banco inclinado": "https://musclewiki.com/exercises/male/shoulders/incline-dumbbell-lateral-raise",
+
+    # Bíceps
+    "curl en banco inclinado": "https://musclewiki.com/exercises/male/biceps/incline-dumbbell-curl",
+    "curl arrastre con barra": "https://musclewiki.com/exercises/male/biceps/barbell-drag-curl",
+    "curl predicador / scott": "https://musclewiki.com/exercises/male/biceps/barbell-preacher-curl",
+    "curl araña": "https://musclewiki.com/exercises/male/biceps/dumbbell-spider-curl",
+    "curl martillo con mancuernas": "https://musclewiki.com/exercises/male/biceps/dumbbell-hammer-curl",
+    "curl martillo en polea con cuerda": "https://musclewiki.com/exercises/male/biceps/cable-rope-hammer-curl",
+
+    # Tríceps
+    "press francés con barra Z": "https://musclewiki.com/exercises/male/triceps/barbell-lying-triceps-extension",
+    "extensión trasnuca en polea": "https://musclewiki.com/exercises/male/triceps/cable-overhead-triceps-extension",
+    "extensión en polea con barra recta": "https://musclewiki.com/exercises/male/triceps/cable-straight-bar-pushdown",
+    "extensión en polea con cuerda": "https://musclewiki.com/exercises/male/triceps/cable-rope-pushdown",
+    "extensión invertida con agarre supino": "https://musclewiki.com/exercises/male/triceps/cable-reverse-grip-pushdown",
+    "fondos entre bancos o paralelas": "https://musclewiki.com/exercises/male/triceps/parallel-bar-dips",
+
+    # Pierna
+    "sentadilla con barra trasera": "https://musclewiki.com/exercises/male/quads/barbell-squat",
+    "prensa inclinada": "https://musclewiki.com/exercises/male/quads/sled-45-leg-press",
+    "extensiones de cuádriceps en máquina": "https://musclewiki.com/exercises/male/quads/lever-leg-extension",
+    "curl femoral tumbado": "https://musclewiki.com/exercises/male/hamstrings/lever-lying-leg-curl",
+    "curl femoral sentado": "https://musclewiki.com/exercises/male/hamstrings/lever-seated-leg-curl",
+    "peso muerto rumano": "https://musclewiki.com/exercises/male/hamstrings/barbell-romanian-deadlift",
+    "hip thrust con barra": "https://musclewiki.com/exercises/male/glutes/barbell-hip-thrust",
+    "elevación de talones de pie": "https://musclewiki.com/exercises/male/calves/standing-calf-raise",
+    "elevación de talones sentado": "https://musclewiki.com/exercises/male/calves/seated-calf-raise"
+}
+
+def obtener_enlace_imagen(nombre_ejercicio):
+    clave = nombre_ejercicio.strip().lower()
+    if clave in IMAGENES_EJERCICIOS:
+        return IMAGENES_EJERCICIOS[clave]
+    # Enlace de búsqueda en caso de añadir ejercicios futuros
+    return f"https://musclewiki.com/search?q={urllib.parse.quote(nombre_ejercicio)}"
+
+# Rutinas estándar de inicio
 RUTINAS_DEFECTO = {
     "Pierna": [
         {"musculo": "pierna", "cantidad": 5}
@@ -48,7 +109,6 @@ def guardar_datos_usuarios(datos):
         pass
 
 def seleccionar_ejercicios_variados(ejercicios, cantidad):
-    """Selecciona ejercicios garantizando variedad por categoría."""
     por_tipo = {}
     for ej in ejercicios:
         t = ej["tipo"]
@@ -60,15 +120,12 @@ def seleccionar_ejercicios_variados(ejercicios, cantidad):
     random.shuffle(tipos_disponibles)
 
     elegidos = []
-
-    # 1. Un ejercicio por cada tipo distinto
     for tipo in tipos_disponibles:
         if len(elegidos) < cantidad and por_tipo[tipo]:
             ej_al_azar = random.choice(por_tipo[tipo])
             elegidos.append(ej_al_azar)
             por_tipo[tipo].remove(ej_al_azar)
 
-    # 2. Completar con los restantes sin repetir
     if len(elegidos) < cantidad:
         sobrantes = [ej for lista in por_tipo.values() for ej in lista]
         faltan = cantidad - len(elegidos)
@@ -78,11 +135,10 @@ def seleccionar_ejercicios_variados(ejercicios, cantidad):
     elegidos.sort(key=lambda x: x["tipo"])
     return elegidos
 
-# Carga de catálogo de ejercicios y base de perfiles
+# Carga de datos
 ejercicios_base = cargar_ejercicios()
 db_usuarios = cargar_datos_usuarios()
 
-# Garantizar al menos un usuario por defecto
 if not db_usuarios:
     db_usuarios["Arturo"] = {
         "rutinas": RUTINAS_DEFECTO.copy(),
@@ -120,37 +176,120 @@ with col_add_user:
 
 datos_perfil = db_usuarios[usuario_activo]
 
-# Inicialización del estado en la sesión
 if "rutina_activa" not in st.session_state:
     st.session_state["rutina_activa"] = None
 if "completados" not in st.session_state:
     st.session_state["completados"] = {}
 
-# --- TEMPORIZADOR DE DESCANSO ---
-with st.expander("⏱️ Temporizador de Descanso", expanded=False):
+# --- PANEL DE CRONÓMETROS: TIEMPO EN EL GYM + DESCANSO ---
+with st.expander("⏱️ Cronómetros (Sesión y Descanso)", expanded=True):
     temporizador_html = """
-    <div style="text-align: center; font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: #1a1c24; padding: 15px; border-radius: 12px; color: white;">
-        <div id="display" style="font-size: 42px; font-weight: bold; margin-bottom: 10px; font-variant-numeric: tabular-nums;">01:30</div>
-        
-        <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; flex-wrap: wrap;">
-            <button onclick="fijar(60)" style="padding: 6px 12px; border-radius: 8px; border: 1px solid #444; background: #2b2e3b; color: #eee; font-weight: 600; cursor: pointer;">60s</button>
-            <button onclick="fijar(90)" style="padding: 6px 12px; border-radius: 8px; border: 1px solid #444; background: #2b2e3b; color: #eee; font-weight: 600; cursor: pointer;">90s</button>
-            <button onclick="fijar(120)" style="padding: 6px 12px; border-radius: 8px; border: 1px solid #444; background: #2b2e3b; color: #eee; font-weight: 600; cursor: pointer;">120s</button>
-            <button onclick="sumar(30)" style="padding: 6px 12px; border-radius: 8px; border: 1px solid #444; background: #2b2e3b; color: #eee; font-weight: 600; cursor: pointer;">+30s</button>
-        </div>
+    <div style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: #161822; padding: 14px; border-radius: 12px; color: white;">
+        <div style="display: flex; gap: 10px; justify-content: space-between; flex-wrap: wrap;">
+            
+            <!-- PANEL 1: TIEMPO EN EL GYM -->
+            <div style="flex: 1; min-width: 140px; background: #222634; padding: 10px; border-radius: 10px; text-align: center; border: 1px solid #32384a;">
+                <div style="font-size: 11px; text-transform: uppercase; font-weight: bold; color: #7fe3aa; letter-spacing: 0.5px;">🏋️ Tiempo Gym</div>
+                <div id="sessionDisplay" style="font-size: 26px; font-weight: bold; margin: 6px 0; font-variant-numeric: tabular-nums; color: #2ecc71;">00:00:00</div>
+                <div style="display: flex; gap: 6px; justify-content: center;">
+                    <button id="btnSession" onclick="toggleSession()" style="padding: 6px 12px; border-radius: 6px; border: none; background: #2ecc71; color: white; font-weight: bold; font-size: 13px; cursor: pointer;">Iniciar</button>
+                    <button onclick="resetSession()" style="padding: 6px 10px; border-radius: 6px; border: 1px solid #555; background: transparent; color: #ccc; font-weight: bold; font-size: 13px; cursor: pointer;">Reset</button>
+                </div>
+            </div>
 
-        <div style="display: flex; gap: 10px; justify-content: center;">
-            <button id="btnStart" onclick="toggleTimer()" style="padding: 10px 24px; border-radius: 8px; border: none; background: #ff4b4b; color: white; font-weight: bold; font-size: 16px; cursor: pointer;">Iniciar</button>
-            <button onclick="reiniciar()" style="padding: 10px 18px; border-radius: 8px; border: 1px solid #555; background: transparent; color: #ccc; font-weight: bold; cursor: pointer;">Reiniciar</button>
+            <!-- PANEL 2: DESCANSO ENTRE SERIES -->
+            <div style="flex: 1; min-width: 155px; background: #222634; padding: 10px; border-radius: 10px; text-align: center; border: 1px solid #32384a;">
+                <div style="font-size: 11px; text-transform: uppercase; font-weight: bold; color: #ff8585; letter-spacing: 0.5px;">⏳ Descanso</div>
+                <div id="restDisplay" style="font-size: 26px; font-weight: bold; margin: 6px 0; font-variant-numeric: tabular-nums; color: #ff4b4b;">01:30</div>
+                <div style="display: flex; gap: 4px; justify-content: center; margin-bottom: 6px; flex-wrap: wrap;">
+                    <button onclick="fijar(60)" style="padding: 3px 6px; border-radius: 4px; border: 1px solid #444; background: #2b3042; color: #eee; font-size: 11px; cursor: pointer;">60s</button>
+                    <button onclick="fijar(90)" style="padding: 3px 6px; border-radius: 4px; border: 1px solid #444; background: #2b3042; color: #eee; font-size: 11px; cursor: pointer;">90s</button>
+                    <button onclick="fijar(120)" style="padding: 3px 6px; border-radius: 4px; border: 1px solid #444; background: #2b3042; color: #eee; font-size: 11px; cursor: pointer;">120s</button>
+                    <button onclick="sumar(30)" style="padding: 3px 6px; border-radius: 4px; border: 1px solid #444; background: #2b3042; color: #eee; font-size: 11px; cursor: pointer;">+30s</button>
+                </div>
+                <div style="display: flex; gap: 6px; justify-content: center;">
+                    <button id="btnRest" onclick="toggleRest()" style="padding: 6px 12px; border-radius: 6px; border: none; background: #ff4b4b; color: white; font-weight: bold; font-size: 13px; cursor: pointer;">Iniciar</button>
+                    <button onclick="reiniciarRest()" style="padding: 6px 10px; border-radius: 6px; border: 1px solid #555; background: transparent; color: #ccc; font-weight: bold; font-size: 13px; cursor: pointer;">Reset</button>
+                </div>
+            </div>
+
         </div>
     </div>
 
     <script>
-        let tiempoRestante = 90;
-        let tiempoInicial = 90;
-        let intervalo = null;
+        // --- LÓGICA CRONÓMETRO DE SESIÓN CON PERSISTENCIA ---
+        let sessionRunning = localStorage.getItem("gym_session_running") === "true";
+        let sessionStartTime = localStorage.getItem("gym_session_start") ? parseInt(localStorage.getItem("gym_session_start")) : null;
+        let sessionAccumulated = localStorage.getItem("gym_session_accumulated") ? parseInt(localStorage.getItem("gym_session_accumulated")) : 0;
 
-        function reproducirBeep() {
+        function formatSession(totalSec) {
+            let h = Math.floor(totalSec / 3600);
+            let m = Math.floor((totalSec % 3600) / 60);
+            let s = totalSec % 60;
+            return (h < 10 ? "0" + h : h) + ":" + (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
+        }
+
+        function updateSessionUI() {
+            let currentSec = sessionAccumulated;
+            if (sessionRunning && sessionStartTime) {
+                currentSec += Math.floor((Date.now() - sessionStartTime) / 1000);
+            }
+            document.getElementById("sessionDisplay").innerText = formatSession(currentSec);
+        }
+
+        function toggleSession() {
+            let btn = document.getElementById("btnSession");
+            if (sessionRunning) {
+                sessionAccumulated += Math.floor((Date.now() - sessionStartTime) / 1000);
+                sessionRunning = false;
+                sessionStartTime = null;
+                localStorage.setItem("gym_session_accumulated", sessionAccumulated);
+                localStorage.setItem("gym_session_running", "false");
+                localStorage.removeItem("gym_session_start");
+                btn.innerText = "Reanudar";
+                btn.style.background = "#2ecc71";
+            } else {
+                sessionRunning = true;
+                sessionStartTime = Date.now();
+                localStorage.setItem("gym_session_start", sessionStartTime);
+                localStorage.setItem("gym_session_running", "true");
+                btn.innerText = "Pausar";
+                btn.style.background = "#e67e22";
+            }
+            updateSessionUI();
+        }
+
+        function resetSession() {
+            sessionRunning = false;
+            sessionStartTime = null;
+            sessionAccumulated = 0;
+            localStorage.removeItem("gym_session_start");
+            localStorage.removeItem("gym_session_accumulated");
+            localStorage.setItem("gym_session_running", "false");
+            let btn = document.getElementById("btnSession");
+            btn.innerText = "Iniciar";
+            btn.style.background = "#2ecc71";
+            updateSessionUI();
+        }
+
+        // Estado inicial del botón de sesión
+        let btnSess = document.getElementById("btnSession");
+        if (sessionRunning) {
+            btnSess.innerText = "Pausar";
+            btnSess.style.background = "#e67e22";
+        } else if (sessionAccumulated > 0) {
+            btnSess.innerText = "Reanudar";
+            btnSess.style.background = "#2ecc71";
+        }
+        setInterval(updateSessionUI, 1000);
+        updateSessionUI();
+
+        // --- LÓGICA TEMPORIZADOR DE DESCANSO ---
+        let restRestante = 90;
+        let restInicial = 90;
+        let restIntervalo = null;
+
+        function sonarAviso() {
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
                 const osc = ctx.createOscillator();
@@ -168,64 +307,65 @@ with st.expander("⏱️ Temporizador de Descanso", expanded=False):
             }
         }
 
-        function actualizarDisplay() {
-            let m = Math.floor(tiempoRestante / 60);
-            let s = tiempoRestante % 60;
-            document.getElementById("display").innerText = 
+        function updateRestDisplay() {
+            let m = Math.floor(restRestante / 60);
+            let s = restRestante % 60;
+            document.getElementById("restDisplay").innerText = 
                 (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
         }
 
-        function toggleTimer() {
-            let btn = document.getElementById("btnStart");
-            if (intervalo) {
-                clearInterval(intervalo);
-                intervalo = null;
+        function toggleRest() {
+            let btn = document.getElementById("btnRest");
+            if (restIntervalo) {
+                clearInterval(restIntervalo);
+                restIntervalo = null;
                 btn.innerText = "Reanudar";
                 btn.style.background = "#ff4b4b";
             } else {
-                if (tiempoRestante <= 0) tiempoRestante = tiempoInicial;
+                if (restRestante <= 0) restRestante = restInicial;
                 btn.innerText = "Pausar";
-                btn.style.background = "#e08b00";
-                intervalo = setInterval(() => {
-                    tiempoRestante--;
-                    actualizarDisplay();
-                    if (tiempoRestante <= 0) {
-                        clearInterval(intervalo);
-                        intervalo = null;
+                btn.style.background = "#e67e22";
+                restIntervalo = setInterval(() => {
+                    restRestante--;
+                    updateRestDisplay();
+                    if (restRestante <= 0) {
+                        clearInterval(restIntervalo);
+                        restIntervalo = null;
                         btn.innerText = "¡Listo!";
                         btn.style.background = "#28a745";
-                        reproducirBeep();
+                        sonarAviso();
                     }
                 }, 1000);
             }
         }
 
         function fijar(seg) {
-            tiempoInicial = seg;
-            tiempoRestante = seg;
-            if (intervalo) { clearInterval(intervalo); intervalo = null; }
-            document.getElementById("btnStart").innerText = "Iniciar";
-            document.getElementById("btnStart").style.background = "#ff4b4b";
-            actualizarDisplay();
+            restInicial = seg;
+            restRestante = seg;
+            if (restIntervalo) { clearInterval(restIntervalo); restIntervalo = null; }
+            let btn = document.getElementById("btnRest");
+            btn.innerText = "Iniciar";
+            btn.style.background = "#ff4b4b";
+            updateRestDisplay();
         }
 
         function sumar(seg) {
-            tiempoRestante += seg;
-            actualizarDisplay();
+            restRestante += seg;
+            updateRestDisplay();
         }
 
-        function reiniciar() {
-            fijar(tiempoInicial);
+        function reiniciarRest() {
+            fijar(restInicial);
         }
 
-        actualizarDisplay();
+        updateRestDisplay();
     </script>
     """
-    components.html(temporizador_html, height=170)
+    components.html(temporizador_html, height=195)
 
 st.divider()
 
-# --- CONFIGURACIÓN DE LA SESIÓN DE ENTRENAMIENTO ---
+# --- MODALIDAD DE ENTRENAMIENTO ---
 modo = st.radio(
     "Modalidad:",
     ["📋 Rutinas guardadas", "🎯 Personalizar músculos"],
@@ -237,7 +377,7 @@ plan_a_generar = []
 if modo == "📋 Rutinas guardadas":
     rutinas_usuario = datos_perfil.get("rutinas", {})
     if not rutinas_usuario:
-        st.info("No tienes rutinas registradas. Crea una en 'Personalizar músculos'.")
+        st.info("No tienes rutinas guardadas.")
     else:
         nombre_rutina_sel = st.selectbox(
             "Selecciona la rutina:",
@@ -265,20 +405,18 @@ else:
             )
             plan_a_generar.append({"musculo": m, "cantidad": cant})
 
-        # Guardar como rutina predeterminada del usuario
         with st.expander("💾 Guardar esta combinación en mis rutinas"):
-            nombre_nueva_rutina = st.text_input("Nombre de la rutina (ej. Pierna y Hombro):")
+            nombre_nueva_rutina = st.text_input("Nombre de la rutina:")
             if st.button("Guardar en mi perfil", use_container_width=True):
                 nombre_guardar = nombre_nueva_rutina.strip()
                 if nombre_guardar:
                     datos_perfil["rutinas"][nombre_guardar] = plan_a_generar
                     db_usuarios[usuario_activo] = datos_perfil
                     guardar_datos_usuarios(db_usuarios)
-                    st.success(f"Rutina '{nombre_guardar}' añadida a tus rutinas guardadas.")
+                    st.success(f"Rutina '{nombre_guardar}' guardada con éxito.")
                 else:
-                    st.warning("Introduce un nombre para la rutina.")
+                    st.warning("Escribe un nombre para la rutina.")
 
-# Botones de acción
 col_gen, col_limpiar = st.columns([3, 1])
 
 with col_gen:
@@ -314,7 +452,6 @@ if st.session_state["rutina_activa"]:
         nombre_m = bloque["musculo"]
         ejercicios = bloque["ejercicios"]
 
-        # Subheading limpio sin recuentos
         st.subheader(nombre_m.upper())
 
         for ej in ejercicios:
@@ -328,7 +465,8 @@ if st.session_state["rutina_activa"]:
                 continue
 
             with st.container():
-                c_check, c_info, c_peso = st.columns([1, 4, 2])
+                # 4 columnas: Checkbox | Info del ejercicio | Botón Imagen | Input Kilos
+                c_check, c_info, c_foto, c_peso = st.columns([0.8, 3.8, 1.2, 2.2])
 
                 with c_check:
                     hecho = st.checkbox(
@@ -344,13 +482,21 @@ if st.session_state["rutina_activa"]:
                 with c_info:
                     if hecho:
                         st.markdown(f"~~**{nombre_ej.capitalize()}**~~")
-                        st.caption(f"✅ Completado ({tipo_ej})")
+                        st.caption(f"✅ Hecho ({tipo_ej})")
                     else:
                         st.markdown(f"**{nombre_ej.capitalize()}**")
                         st.caption(f"Tipo: {tipo_ej}")
 
+                with c_foto:
+                    enlace_foto = obtener_enlace_imagen(nombre_ej)
+                    st.link_button(
+                        "🖼️",
+                        enlace_foto,
+                        help=f"Ver técnica e ilustración de {nombre_ej.capitalize()}",
+                        use_container_width=True
+                    )
+
                 with c_peso:
-                    # Peso vinculado únicamente al usuario activo
                     pesos_usuario = datos_perfil.setdefault("pesos", {})
                     peso_guardado = float(pesos_usuario.get(nombre_ej, 0.0))
 
