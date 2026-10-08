@@ -69,10 +69,8 @@ def obtener_enlace_imagen(nombre_ejercicio):
     clave = nombre_ejercicio.strip().lower()
     if clave in IMAGENES_EJERCICIOS:
         return IMAGENES_EJERCICIOS[clave]
-    # Enlace de búsqueda en caso de añadir ejercicios futuros
     return f"https://musclewiki.com/search?q={urllib.parse.quote(nombre_ejercicio)}"
 
-# Rutinas estándar de inicio
 RUTINAS_DEFECTO = {
     "Pierna": [
         {"musculo": "pierna", "cantidad": 5}
@@ -181,43 +179,47 @@ if "rutina_activa" not in st.session_state:
 if "completados" not in st.session_state:
     st.session_state["completados"] = {}
 
-# --- PANEL DE CRONÓMETROS: TIEMPO EN EL GYM + DESCANSO ---
-with st.expander("⏱️ Cronómetros (Sesión y Descanso)", expanded=True):
+# --- PANEL DE CRONÓMETROS: DESCANSO PROTAGONISTA + TIEMPO GYM COMPACTO ---
+with st.expander("⏱️ Temporizador de Descanso", expanded=True):
     temporizador_html = """
-    <div style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: #161822; padding: 14px; border-radius: 12px; color: white;">
-        <div style="display: flex; gap: 10px; justify-content: space-between; flex-wrap: wrap;">
-            
-            <!-- PANEL 1: TIEMPO EN EL GYM -->
-            <div style="flex: 1; min-width: 140px; background: #222634; padding: 10px; border-radius: 10px; text-align: center; border: 1px solid #32384a;">
-                <div style="font-size: 11px; text-transform: uppercase; font-weight: bold; color: #7fe3aa; letter-spacing: 0.5px;">🏋️ Tiempo Gym</div>
-                <div id="sessionDisplay" style="font-size: 26px; font-weight: bold; margin: 6px 0; font-variant-numeric: tabular-nums; color: #2ecc71;">00:00:00</div>
-                <div style="display: flex; gap: 6px; justify-content: center;">
-                    <button id="btnSession" onclick="toggleSession()" style="padding: 6px 12px; border-radius: 6px; border: none; background: #2ecc71; color: white; font-weight: bold; font-size: 13px; cursor: pointer;">Iniciar</button>
-                    <button onclick="resetSession()" style="padding: 6px 10px; border-radius: 6px; border: 1px solid #555; background: transparent; color: #ccc; font-weight: bold; font-size: 13px; cursor: pointer;">Reset</button>
-                </div>
+    <div style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: #14161f; padding: 14px; border-radius: 14px; color: white;">
+        
+        <!-- BARRA DISCRETA: TIEMPO TOTAL EN EL GIMNASIO -->
+        <div style="display: flex; justify-content: space-between; align-items: center; background: #1f2330; padding: 8px 12px; border-radius: 8px; margin-bottom: 14px; border: 1px solid #2f354a;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 13px; color: #9aa1b5; font-weight: 600;">🏋️ Sesión:</span>
+                <span id="sessionDisplay" style="font-size: 17px; font-weight: bold; color: #2ecc71; font-variant-numeric: tabular-nums;">00:00:00</span>
             </div>
-
-            <!-- PANEL 2: DESCANSO ENTRE SERIES -->
-            <div style="flex: 1; min-width: 155px; background: #222634; padding: 10px; border-radius: 10px; text-align: center; border: 1px solid #32384a;">
-                <div style="font-size: 11px; text-transform: uppercase; font-weight: bold; color: #ff8585; letter-spacing: 0.5px;">⏳ Descanso</div>
-                <div id="restDisplay" style="font-size: 26px; font-weight: bold; margin: 6px 0; font-variant-numeric: tabular-nums; color: #ff4b4b;">01:30</div>
-                <div style="display: flex; gap: 4px; justify-content: center; margin-bottom: 6px; flex-wrap: wrap;">
-                    <button onclick="fijar(60)" style="padding: 3px 6px; border-radius: 4px; border: 1px solid #444; background: #2b3042; color: #eee; font-size: 11px; cursor: pointer;">60s</button>
-                    <button onclick="fijar(90)" style="padding: 3px 6px; border-radius: 4px; border: 1px solid #444; background: #2b3042; color: #eee; font-size: 11px; cursor: pointer;">90s</button>
-                    <button onclick="fijar(120)" style="padding: 3px 6px; border-radius: 4px; border: 1px solid #444; background: #2b3042; color: #eee; font-size: 11px; cursor: pointer;">120s</button>
-                    <button onclick="sumar(30)" style="padding: 3px 6px; border-radius: 4px; border: 1px solid #444; background: #2b3042; color: #eee; font-size: 11px; cursor: pointer;">+30s</button>
-                </div>
-                <div style="display: flex; gap: 6px; justify-content: center;">
-                    <button id="btnRest" onclick="toggleRest()" style="padding: 6px 12px; border-radius: 6px; border: none; background: #ff4b4b; color: white; font-weight: bold; font-size: 13px; cursor: pointer;">Iniciar</button>
-                    <button onclick="reiniciarRest()" style="padding: 6px 10px; border-radius: 6px; border: 1px solid #555; background: transparent; color: #ccc; font-weight: bold; font-size: 13px; cursor: pointer;">Reset</button>
-                </div>
+            <div style="display: flex; gap: 6px;">
+                <button id="btnSession" onclick="toggleSession()" style="padding: 4px 10px; border-radius: 6px; border: none; background: #2ecc71; color: white; font-weight: bold; font-size: 12px; cursor: pointer;">Iniciar</button>
+                <button onclick="resetSession()" style="padding: 4px 8px; border-radius: 6px; border: 1px solid #4f566b; background: transparent; color: #ccc; font-size: 12px; cursor: pointer;">Reset</button>
             </div>
-
         </div>
+
+        <!-- SECCIÓN PRINCIPAL: CRONÓMETRO DE DESCANSO GIGANTE -->
+        <div style="text-align: center;">
+            <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; color: #ff7675; font-weight: 700; margin-bottom: 2px;">⏳ DESCANSO ENTRE SERIES</div>
+            <div id="restDisplay" style="font-size: 54px; font-weight: 800; margin: 4px 0 10px 0; font-variant-numeric: tabular-nums; color: #ffffff; letter-spacing: 1px;">01:30</div>
+
+            <!-- BOTONES RÁPIDOS AMPLIOS PARA EL MÓVIL -->
+            <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; flex-wrap: wrap;">
+                <button onclick="fijar(60)" style="flex: 1; max-width: 75px; padding: 8px 0; border-radius: 8px; border: 1px solid #3c4257; background: #252a3a; color: #f0f2f8; font-size: 14px; font-weight: 600; cursor: pointer;">60s</button>
+                <button onclick="fijar(90)" style="flex: 1; max-width: 75px; padding: 8px 0; border-radius: 8px; border: 1px solid #3c4257; background: #252a3a; color: #f0f2f8; font-size: 14px; font-weight: 600; cursor: pointer;">90s</button>
+                <button onclick="fijar(120)" style="flex: 1; max-width: 75px; padding: 8px 0; border-radius: 8px; border: 1px solid #3c4257; background: #252a3a; color: #f0f2f8; font-size: 14px; font-weight: 600; cursor: pointer;">120s</button>
+                <button onclick="sumar(30)" style="flex: 1; max-width: 75px; padding: 8px 0; border-radius: 8px; border: 1px solid #3c4257; background: #252a3a; color: #ff8585; font-size: 14px; font-weight: 700; cursor: pointer;">+30s</button>
+            </div>
+
+            <!-- BOTONES DE ACCIÓN PRINCIPALES -->
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button id="btnRest" onclick="toggleRest()" style="flex: 2; max-width: 190px; padding: 12px 0; border-radius: 10px; border: none; background: #ff4b4b; color: white; font-weight: 800; font-size: 17px; cursor: pointer; box-shadow: 0 4px 12px rgba(255, 75, 75, 0.3);">Iniciar</button>
+                <button onclick="reiniciarRest()" style="flex: 1; max-width: 100px; padding: 12px 0; border-radius: 10px; border: 1px solid #4a5166; background: transparent; color: #d0d4e4; font-weight: 700; font-size: 14px; cursor: pointer;">Reset</button>
+            </div>
+        </div>
+
     </div>
 
     <script>
-        // --- LÓGICA CRONÓMETRO DE SESIÓN CON PERSISTENCIA ---
+        // --- SESIÓN GYM CON MEMORIA LOCAL ---
         let sessionRunning = localStorage.getItem("gym_session_running") === "true";
         let sessionStartTime = localStorage.getItem("gym_session_start") ? parseInt(localStorage.getItem("gym_session_start")) : null;
         let sessionAccumulated = localStorage.getItem("gym_session_accumulated") ? parseInt(localStorage.getItem("gym_session_accumulated")) : 0;
@@ -272,7 +274,6 @@ with st.expander("⏱️ Cronómetros (Sesión y Descanso)", expanded=True):
             updateSessionUI();
         }
 
-        // Estado inicial del botón de sesión
         let btnSess = document.getElementById("btnSession");
         if (sessionRunning) {
             btnSess.innerText = "Pausar";
@@ -284,7 +285,7 @@ with st.expander("⏱️ Cronómetros (Sesión y Descanso)", expanded=True):
         setInterval(updateSessionUI, 1000);
         updateSessionUI();
 
-        // --- LÓGICA TEMPORIZADOR DE DESCANSO ---
+        // --- TEMPORIZADOR DE DESCANSO ---
         let restRestante = 90;
         let restInicial = 90;
         let restIntervalo = null;
@@ -361,7 +362,7 @@ with st.expander("⏱️ Cronómetros (Sesión y Descanso)", expanded=True):
         updateRestDisplay();
     </script>
     """
-    components.html(temporizador_html, height=195)
+    components.html(temporizador_html, height=270)
 
 st.divider()
 
@@ -465,7 +466,6 @@ if st.session_state["rutina_activa"]:
                 continue
 
             with st.container():
-                # 4 columnas: Checkbox | Info del ejercicio | Botón Imagen | Input Kilos
                 c_check, c_info, c_foto, c_peso = st.columns([0.8, 3.8, 1.2, 2.2])
 
                 with c_check:
