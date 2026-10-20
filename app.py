@@ -14,7 +14,6 @@ EXERCISES_FILE = "exercises.json"
 
 # --- LÓGICA PARA BUSCAR IMÁGENES SEGURAS ---
 def obtener_enlace_imagen(nombre_ejercicio):
-    # Genera una búsqueda directa en Google Imágenes enfocada en la técnica
     termino_busqueda = f"técnica ejecución {nombre_ejercicio} gimnasio"
     enlace = f"https://www.google.com/search?tbm=isch&q={urllib.parse.quote(termino_busqueda)}"
     return enlace
@@ -399,7 +398,7 @@ if st.session_state["rutina_activa"]:
         for ej in ejercicios:
             nombre_ej = ej["nombre"]
             tipo_ej = ej["tipo"]
-            key_ej = f"{usuario_activo}_{nombre_m}_{nombre_ej}"
+            key_ej = f"act_{usuario_activo}_{nombre_m}_{nombre_ej}"
 
             esta_completado = st.session_state["completados"].get(key_ej, False)
 
@@ -456,6 +455,62 @@ if st.session_state["rutina_activa"]:
                         guardar_datos_usuarios(db_usuarios)
 
             st.write("")
+
+# --- CATÁLOGO DE EJERCICIOS Y PESOS (NUEVO) ---
+st.divider()
+with st.expander("📚 Catálogo y Mis Pesos", expanded=False):
+    st.write("Consulta o modifica tus marcas personales sin tener que generar una rutina:")
+    
+    # Creamos las pestañas para cada grupo muscular
+    musculos_lista = [item["musculo"] for item in ejercicios_base]
+    tabs_musculos = st.tabs([m.capitalize() for m in musculos_lista])
+    
+    for idx, tab in enumerate(tabs_musculos):
+        with tab:
+            musculo_actual = musculos_lista[idx]
+            ejercicios_del_musculo = next((item["ejercicios"] for item in ejercicios_base if item["musculo"] == musculo_actual), [])
+            
+            for ej in ejercicios_del_musculo:
+                nombre_ej = ej["nombre"]
+                tipo_ej = ej["tipo"]
+                
+                pesos_usuario = datos_perfil.setdefault("pesos", {})
+                peso_guardado = float(pesos_usuario.get(nombre_ej, 0.0))
+                
+                # Columnas ajustadas para el catálogo
+                col_cat_info, col_cat_foto, col_cat_peso = st.columns([4, 1.2, 2.5])
+                
+                with col_cat_info:
+                    st.markdown(f"**{nombre_ej.capitalize()}**")
+                    st.caption(f"Tipo: {tipo_ej}")
+                    
+                with col_cat_foto:
+                    enlace_foto = obtener_enlace_imagen(nombre_ej)
+                    st.link_button(
+                        "🖼️", 
+                        enlace_foto, 
+                        key=f"cat_link_{musculo_actual}_{nombre_ej}", 
+                        use_container_width=True
+                    )
+                    
+                with col_cat_peso:
+                    nuevo_peso_cat = st.number_input(
+                        "kg",
+                        min_value=0.0,
+                        max_value=500.0,
+                        value=peso_guardado,
+                        step=2.5,
+                        key=f"cat_peso_{usuario_activo}_{musculo_actual}_{nombre_ej}",
+                        label_visibility="collapsed"
+                    )
+                    if nuevo_peso_cat != peso_guardado:
+                        pesos_usuario[nombre_ej] = nuevo_peso_cat
+                        db_usuarios[usuario_activo] = datos_perfil
+                        guardar_datos_usuarios(db_usuarios)
+                        # Fuerza recarga para mantener todo sincronizado
+                        st.rerun() 
+                
+                st.write("") # Espaciador ligero
 
 # --- BUZÓN DE SUGERENCIAS VÍA TELEGRAM ---
 st.divider()
