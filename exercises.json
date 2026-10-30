@@ -42,7 +42,7 @@
       { "tipo": "braquial", "nombre": "curl martillo en polea con cuerda" }
     ]
   },
-  {
+    {
     "musculo": "triceps",
     "ejercicios": [
       { "tipo": "cabeza larga", "nombre": "press francés con barra Z" },
@@ -50,9 +50,10 @@
       { "tipo": "cabeza lateral", "nombre": "extensión en polea con barra recta" },
       { "tipo": "cabeza lateral", "nombre": "extensión en polea con cuerda" },
       { "tipo": "cabeza medial", "nombre": "extensión invertida con agarre supino" },
-      { "tipo": "compuesto", "nombre": "fondos entre bancos o paralelas" }
+      { "tipo": "cabeza lateral", "nombre": "extensión en polea con barra V" }
     ]
   },
+
   {
     "musculo": "pierna",
     "ejercicios": [
